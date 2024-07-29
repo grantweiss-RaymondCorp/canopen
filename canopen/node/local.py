@@ -154,15 +154,21 @@ class LocalNode(BaseNode):
                 logger.warning("Tried to configure tpdo when not in pre-op")
                 return
             
+            tpdoNum = (index - 0x1800) + 1
+            if tpdoNum not in self.tpdo.map.keys():
+                return
+
             if subindex == 0x01:
                 if len(data) == 4:
-                    tpdoNum = (index - 0x1800) + 1
-                    if tpdoNum in self.tpdo.map.keys():
-                        PDO_NOT_VALID = 1 << 31
-                        RTR_NOT_ALLOWED = 1 << 30
+                    PDO_NOT_VALID = 1 << 31
+                    RTR_NOT_ALLOWED = 1 << 30
 
-                        cob_id = int.from_bytes(data, 'little') & 0x7FF
+                    cob_id = int.from_bytes(data, 'little') & 0x7FF
 
-                        self.tpdo.map[tpdoNum].cob_id = cob_id & 0x1FFFFFFF
-                        self.tpdo.map[tpdoNum].enabled = cob_id & PDO_NOT_VALID == 0
-                        self.tpdo.map[tpdoNum].rtr_allowed = cob_id & RTR_NOT_ALLOWED == 0
+                    self.tpdo.map[tpdoNum].cob_id = cob_id & 0x1FFFFFFF
+                    self.tpdo.map[tpdoNum].enabled = cob_id & PDO_NOT_VALID == 0
+                    self.tpdo.map[tpdoNum].rtr_allowed = cob_id & RTR_NOT_ALLOWED == 0
+
+            elif subindex == 0x05:
+                if len(data) == 2:
+                    self.tpdo.map[tpdoNum].event_timer = int.from_bytes(data, 'little')
