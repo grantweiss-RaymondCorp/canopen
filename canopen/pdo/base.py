@@ -392,6 +392,17 @@ class PdoMap:
                 size = (value >> 24) & 0x7F
             if index and size:
                 self.add_variable(index, subindex, size)
+            elif size:
+                # for mapping objects that don't exist in the OD, need to maintain bit spacing
+                logger.info("PDO mapped object does not exist (0x%04X:%02X), creating dummy object of size %d", index, subindex, size)
+                obj = objectdictionary.ODVariable('Dummy', 0, 0)
+                var = PdoVariable(obj)
+                var.length = size
+                self.map.append(var)
+                self.length += var.length
+                self._update_data_size()
+                if self.length > 64:
+                    logger.warning(f"Max size of PDO exceeded ({self.length} > 64)")
 
         self.subscribe()
 
