@@ -536,8 +536,11 @@ class PdoMap:
         # overwrite the reference and can lose our handle to shut it down
         self.stop()
 
+        # Prefer period, then self.period, then use self.event_timer
         if period is not None:
             self.period = period
+        elif self.period is None and self.event_timer and self.trans_type >= 254:
+            self.period = self.event_timer / 1000
 
         if not self.period:
             raise ValueError("A valid transmission period has not been given")
